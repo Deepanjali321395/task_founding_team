@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Task Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --surface2: #f0efe9;
+    --border: rgba(0,0,0,0.08);
+    --border-strong: rgba(0,0,0,0.15);
+    --text: #1a1a18;
+    --text-muted: #6b6a64;
+    --text-faint: #a8a79f;
+    --accent-ceo: #3c3489;
+    --accent-ceo-bg: #eeedfe;
+    --accent-cfo: #0f6e56;
+    --accent-cfo-bg: #e1f5ee;
+    --success: #3b6d11;
+    --success-bg: #eaf3de;
+    --danger: #a32d2d;
+    --danger-bg: #fcebeb;
+    --warning-bg: #faeeda;
+    --warning: #854f0b;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #181816;
+      --surface: #232320;
+      --surface2: #2c2c29;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.15);
+      --text: #e8e7e0;
+      --text-muted: #9a9990;
+      --text-faint: #5a5950;
+      --accent-ceo: #afa9ec;
+      --accent-ceo-bg: #26215c;
+      --accent-cfo: #5dcaa5;
+      --accent-cfo-bg: #04342c;
+      --success: #97c459;
+      --success-bg: #173404;
+      --danger: #f09595;
+      --danger-bg: #501313;
+      --warning-bg: #412402;
+      --warning: #ef9f27;
+    }
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2rem;
+  }
+
+  header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+
+  header p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  .summary-card:hover { border-color: var(--border-strong); }
+  .summary-card.active-ceo { border-color: var(--accent-ceo); border-width: 1.5px; }
+  .summary-card.active-cfo { border-color: var(--accent-cfo); border-width: 1.5px; }
+
+  .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace;
+  }
+  .avatar-ceo { background: var(--accent-ceo-bg); color: var(--accent-ceo); }
+  .avatar-cfo { background: var(--accent-cfo-bg); color: var(--accent-cfo); }
+
+  .card-name { font-size: 13px; font-weight: 500; }
+  .card-role { font-size: 11px; color: var(--text-muted); }
+
+  .card-stat { font-size: 26px; font-weight: 600; line-height: 1; margin-bottom: 4px; }
+  .card-stat span { font-size: 14px; font-weight: 400; color: var(--text-muted); }
+  .card-sublabel { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+
+  .progress-bar {
+    height: 5px; border-radius: 3px;
+    background: var(--border); overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 3px; transition: width .4s;
+  }
+  .fill-ceo { background: var(--accent-ceo); }
+  .fill-cfo { background: var(--accent-cfo); }
+
+  .progress-pct {
+    font-size: 11px; color: var(--text-faint);
+    text-align: right; margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .sheet {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+  }
+
+  .sheet-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .sheet-title { font-size: 15px; font-weight: 500; }
+  .sheet-count { font-size: 13px; color: var(--text-muted); }
+
+  .task-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 0;
+    border-bottom: 0.5px solid var(--border);
+    transition: opacity .15s;
+  }
+  .task-row:last-of-type { border-bottom: none; }
+
+  .check {
+    width: 20px; height: 20px; flex-shrink: 0;
+    border-radius: 5px; border: 1.5px solid var(--border-strong);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .15s, border-color .15s;
+    background: transparent;
+  }
+  .check.done-ceo { background: var(--accent-ceo-bg); border-color: var(--accent-ceo); }
+  .check.done-cfo { background: var(--accent-cfo-bg); border-color: var(--accent-cfo); }
+  .check i { font-size: 12px; }
+  .check.done-ceo i { color: var(--accent-ceo); }
+  .check.done-cfo i { color: var(--accent-cfo); }
+
+  .task-label {
+    flex: 1; font-size: 14px; color: var(--text);
+    transition: color .15s;
+  }
+  .task-label.done { text-decoration: line-through; color: var(--text-faint); }
+
+  .badge {
+    font-size: 11px; padding: 2px 7px;
+    border-radius: var(--radius-sm); font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+  }
+  .badge-high { background: var(--danger-bg); color: var(--danger); }
+  .badge-med  { background: var(--warning-bg); color: var(--warning); }
+  .badge-low  { background: var(--surface2); color: var(--text-muted); }
+
+  .del-btn {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    color: var(--text-faint); font-size: 15px;
+    border-radius: var(--radius-sm);
+    transition: color .15s, background .15s;
+    display: flex; align-items: center;
+  }
+  .del-btn:hover { color: var(--danger); background: var(--danger-bg); }
+
+  .add-row {
+    display: flex; gap: 8px; margin-top: 14px; padding-top: 14px;
+    border-top: 0.5px solid var(--border);
+  }
+
+  input[type="text"], select {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  input[type="text"] { flex: 1; }
+  input[type="text"]:focus, select:focus { border-color: var(--border-strong); }
+
+  button.add-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 5px;
+    transition: opacity .15s;
+    white-space: nowrap;
+  }
+  button.add-btn:hover { opacity: .85; }
+
+  .empty {
+    text-align: center; padding: 2rem;
+    color: var(--text-faint); font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    .summary-grid { grid-template-columns: 1fr; }
+    .add-row { flex-wrap: wrap; }
+    input[type="text"] { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1><i class="ti ti-checks" style="vertical-align:-2px;margin-right:6px"></i>Team task tracker</h1>
+    <p>CEO &amp; CFO — click a card to switch views</p>
+  </header>
+
+  <div class="summary-grid" id="summary"></div>
+  <div class="sheet" id="sheet"></div>
+
+</div>
+
+<script>
+const state = {
+  current: 'ceo',
+  tasks: {
+    ceo: [
+      {id:1,label:'Review Q2 board presentation',priority:'high',done:true},
+      {id:2,label:'Approve new partnership term sheet',priority:'high',done:true},
+      {id:3,label:'1:1 with department heads',priority:'med',done:true},
+      {id:4,label:'Sign off on hiring plan',priority:'med',done:false},
+      {id:5,label:'Investor update email',priority:'med',done:false},
+      {id:6,label:'Review product roadmap',priority:'low',done:false},
+      {id:7,label:'Company all-hands prep',priority:'low',done:false},
+    ],
+    cfo: [
+      {id:1,label:'Close monthly books',priority:'high',done:true},
+      {id:2,label:'Cash flow forecast update',priority:'high',done:true},
+      {id:3,label:'Payroll approval',priority:'high',done:true},
+      {id:4,label:'Budget variance report',priority:'med',done:true},
+      {id:5,label:'Audit committee meeting',priority:'med',done:false},
+      {id:6,label:'Tax filing review',priority:'med',done:false},
+      {id:7,label:'Vendor payment runs',priority:'low',done:false},
+      {id:8,label:'Annual insurance renewal',priority:'low',done:false},
+    ]
+  },
+  nextId: 100
+};
+
+function pct(key){
+  const t=state.tasks[key]; const d=t.filter(x=>x.done).length;
+  return t.length?Math.round(d/t.length*100):0;
+}
+
+function renderSummary(){
+  const members=[
+    {key:'ceo',label:'CEO',role:'Chief Executive Officer',initials:'CE'},
+    {key:'cfo',label:'CFO',role:'Chief Financial Officer',initials:'CF'},
+  ];
+  document.getElementById('summary').innerHTML=members.map(m=>{
+    const tasks=state.tasks[m.key];
+    const done=tasks.filter(t=>t.done).length;
+    const total=tasks.length;
+    const p=pct(m.key);
+    const active=state.current===m.key?`active-${m.key}`:'';
+    return `<div class="summary-card ${active}" onclick="switchMember('${m.key}')">
+      <div class="card-header">
+        <div class="avatar avatar-${m.key}">${m.initials}</div>
+        <div><div class="card-name">${m.label}</div><div class="card-role">${m.role}</div></div>
+      </div>
+      <div class="card-stat">${done}<span> / ${total}</span></div>
+      <div class="card-sublabel">tasks completed</div>
+      <div class="progress-bar"><div class="progress-fill fill-${m.key}" style="width:${p}%"></div></div>
+      <div class="progress-pct">${p}%</div>
+    </div>`;
+  }).join('');
+}
+
+function badgeHtml(p){
+  if(p==='high') return '<span class="badge badge-high">high</span>';
+  if(p==='med')  return '<span class="badge badge-med">medium</span>';
+  return '<span class="badge badge-low">low</span>';
+}
+
+function renderSheet(){
+  const key=state.current;
+  const tasks=state.tasks[key];
+  const done=tasks.filter(t=>t.done).length;
+  const total=tasks.length;
+  const rows=tasks.length
+    ? tasks.map((t,i)=>`
+      <div class="task-row">
+        <div class="check${t.done?' done-'+key:''}" onclick="toggle('${key}',${i})" role="checkbox" aria-checked="${t.done}" tabindex="0" onkeydown="if(event.key===' ')toggle('${key}',${i})">
+          ${t.done?'<i class="ti ti-check"></i>':''}
+        </div>
+        <span class="task-label${t.done?' done':''}">${t.label}</span>
+        ${badgeHtml(t.priority)}
+        <button class="del-btn" onclick="remove('${key}',${i})" aria-label="Delete task"><i class="ti ti-trash"></i></button>
+      </div>`).join('')
+    : '<div class="empty"><i class="ti ti-mood-smile" style="font-size:24px;display:block;margin-bottom:8px"></i>All done! No tasks remaining.</div>';
+
+  document.getElementById('sheet').innerHTML=`
+    <div class="sheet-header">
+      <span class="sheet-title">${key.toUpperCase()} task sheet</span>
+      <span class="sheet-count">${done} of ${total} completed</span>
+    </div>
+    ${rows}
+    <div class="add-row">
+      <input type="text" id="new-task" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addTask()">
+      <select id="new-priority">
+        <option value="high">High</option>
+        <option value="med" selected>Medium</option>
+        <option value="low">Low</option>
+      </select>
+      <button class="add-btn" onclick="addTask()"><i class="ti ti-plus"></i> Add</button>
+    </div>`;
+}
+
+function render(){ renderSummary(); renderSheet(); }
+function toggle(key,i){ state.tasks[key][i].done=!state.tasks[key][i].done; render(); }
+function remove(key,i){ state.tasks[key].splice(i,1); render(); }
+function switchMember(key){ state.current=key; render(); }
+function addTask(){
+  const inp=document.getElementById('new-task');
+  const sel=document.getElementById('new-priority');
+  const label=inp.value.trim();
+  if(!label) return;
+  state.tasks[state.current].push({id:state.nextId++,label,priority:sel.value,done:false});
+  inp.value=''; render();
+}
+
+render();
+</script>
+</body>
+</html>
