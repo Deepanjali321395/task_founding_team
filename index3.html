@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Organization Task Manager</title>
+
+  <style>
+
+    body{
+      font-family:Arial;
+      background:#f4f4f4;
+      padding:20px;
+    }
+
+    .box{
+      background:white;
+      padding:20px;
+      border-radius:10px;
+      margin-bottom:20px;
+    }
+
+    input,textarea{
+      width:100%;
+      padding:10px;
+      margin-top:10px;
+    }
+
+    button{
+      margin-top:10px;
+      padding:10px 15px;
+      cursor:pointer;
+    }
+
+    .task{
+      background:white;
+      padding:15px;
+      margin-top:10px;
+      border-radius:10px;
+    }
+
+  </style>
+
+</head>
+<body>
+
+<h1>Organization Task Manager</h1>
+
+<div class="box">
+
+  <input type="text"
+         id="title"
+         placeholder="Task Title">
+
+  <input type="text"
+         id="assignedTo"
+         placeholder="Assign To">
+
+  <textarea id="description"
+            placeholder="Description"></textarea>
+
+  <button onclick="addTask()">
+    Assign Task
+  </button>
+
+</div>
+
+<div id="tasks"></div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  push,
+  onValue
+}
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+
+  apiKey: "YOUR_API_KEY",
+
+  authDomain: "YOUR_DOMAIN",
+
+  databaseURL: "YOUR_DATABASE_URL",
+
+  projectId: "YOUR_PROJECT_ID",
+
+  storageBucket: "YOUR_BUCKET",
+
+  messagingSenderId: "YOUR_SENDER_ID",
+
+  appId: "YOUR_APP_ID"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+const taskRef = ref(db, "tasks");
+
+window.addTask = function(){
+
+  const title =
+    document.getElementById("title").value;
+
+  const assignedTo =
+    document.getElementById("assignedTo").value;
+
+  const description =
+    document.getElementById("description").value;
+
+  push(taskRef, {
+
+    title,
+    assignedTo,
+    description,
+    createdAt: new Date().toLocaleString()
+
+  });
+
+};
+
+onValue(taskRef, (snapshot)=>{
+
+  const data = snapshot.val();
+
+  const tasksDiv =
+    document.getElementById("tasks");
+
+  tasksDiv.innerHTML = "";
+
+  for(let id in data){
+
+    const task = data[id];
+
+    tasksDiv.innerHTML += `
+
+      <div class="task">
+
+        <h3>${task.title}</h3>
+
+        <p>
+          <b>Assigned To:</b>
+          ${task.assignedTo}
+        </p>
+
+        <p>${task.description}</p>
+
+        <small>${task.createdAt}</small>
+
+      </div>
+
+    `;
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
